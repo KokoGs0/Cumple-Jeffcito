@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17131f">
+  <title>Un pequeño archivo para ti</title>
+  <style>
+    :root {
+      --bg: #100e15; --panel: #1b1723; --panel2: #231c2e;
+      --red: #e04d63; --red2: #ff7181; --purple: #a88be8;
+      --text: #f7f0fa; --muted: #c1b5ca; --line: #49364e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 24px;
+      display: grid; place-items: center;
+      color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: radial-gradient(ellipse at top, #33203b 0%, #17131f 42%, #0d0b11 100%);
+    }
+    .login { width: min(100%, 390px); padding: 22px; border-radius: 24px; background: #19151ff2; border: 1px solid #5a3b56; box-shadow: 0 22px 70px #0007; }
+    .photo-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 22px; }
+    .photo-slot { min-height: 116px; overflow: hidden; border-radius: 15px; border: 1px solid #654057; background: linear-gradient(135deg,#392234,#252039); display: grid; place-items: center; text-align: center; color: #d6b9d9; font-size: 12px; padding: 8px; }
+    .photo-slot img { width: 100%; height: 100%; min-height: 116px; object-fit: cover; display: block; }
+    .eyebrow { text-align: center; color: var(--red2); font-size: 10px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; margin: 0 0 8px; }
+    h1 { text-align: center; margin: 0; font-size: 29px; letter-spacing: -.04em; }
+    .sub { text-align: center; color: var(--muted); font-size: 13px; line-height: 1.55; margin: 10px 0 20px; }
+    .dots { display: flex; justify-content: center; gap: 12px; margin-bottom: 18px; }
+    .dot { width: 39px; height: 43px; display: grid; place-items: center; border: 1px solid #634157; border-radius: 12px; background: #100e15; color: var(--red2); font-size: 20px; }
+    .dot.filled { border-color: var(--red); background: #2b1725; }
+    .keypad { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    button { font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .key { min-height: 50px; border: 1px solid #4d374f; border-radius: 13px; color: var(--text); background: #282132; font-size: 19px; font-weight: 700; transition: background .12s, transform .12s; }
+    .key:hover { background: #39273a; }
+    .key:active { transform: scale(.97); }
+    .utility { color: #d8a7c5; font-size: 13px; }
+    .message { min-height: 20px; text-align: center; margin: 14px 0 0; color: #e9a4b9; font-size: 12px; }
+    .shake { animation: shake .25s ease-in-out; }
+    @keyframes shake { 25%,75% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="login" id="card">
+    <div class="photo-pair">
+      <!-- Cambia foto-juntos-1.jpg y foto-juntos-2.jpg por los nombres de tus fotos. -->
+      <div class="photo-slot"><img src="foto-juntos-1.jpg" alt="Una foto de los dos" onerror="this.remove(); this.parentElement.textContent='Añade aquí una foto vuestra';"></div>
+      <div class="photo-slot"><img src="foto-juntos-2.jpg" alt="Otra foto de los dos" onerror="this.remove(); this.parentElement.textContent='Y aquí otra foto vuestra';"></div>
+    </div>
+    <p class="eyebrow">archivo personal · acceso privado</p>
+    <h1>Una cosa para ti.</h1>
+    <p class="sub">Hay recuerdos que merecen su propio sitio.<br>Introduce el código para entrar.</p>
+    <div class="dots" aria-label="PIN de cuatro cifras" aria-live="polite">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div class="keypad" aria-label="Teclado numérico">
+      <button class="key" data-digit="1">1</button><button class="key" data-digit="2">2</button><button class="key" data-digit="3">3</button>
+      <button class="key" data-digit="4">4</button><button class="key" data-digit="5">5</button><button class="key" data-digit="6">6</button>
+      <button class="key" data-digit="7">7</button><button class="key" data-digit="8">8</button><button class="key" data-digit="9">9</button>
+      <button class="key utility" id="clear">Borrar</button><button class="key" data-digit="0">0</button><button class="key utility" id="backspace">⌫</button>
+    </div>
+    <p class="message" id="message" role="status" aria-live="polite">Pista: una fecha importante ♡</p>
+  </main>
+  <script>
+    // PIN de acceso. Se conserva como texto para admitir códigos que empiecen por cero.
+    const PIN_CORRECTO = "06092023";
+    const PAGINA_PRINCIPAL = "inicio.html";
+    let pin = "";
+    const dots = [...document.querySelectorAll(".dot")];
+    const message = document.getElementById("message");
+    const card = document.getElementById("card");
+
+    function dibujar() {
+      dots.forEach((dot, i) => {
+        dot.textContent = i < pin.length ? "●" : "";
+        dot.classList.toggle("filled", i < pin.length);
+      });
+    }
+    function comprobar() {
+      if (pin.length !== PIN_CORRECTO.length) return;
+      if (pin === PIN_CORRECTO) {
+        message.textContent = "Código correcto. Bienvenido ♡";
+        message.style.color = "#b9a4f2";
+        document.querySelectorAll("button").forEach(b => b.disabled = true);
+        setTimeout(() => window.location.href = PAGINA_PRINCIPAL, 500);
+      } else {
+        message.textContent = "Ese código no es. Prueba otra vez.";
+        card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+        pin = ""; dibujar();
+      }
+    }
+    function añadir(d) {
+      if (pin.length >= PIN_CORRECTO.length) return;
+      pin += d; dibujar();
+      message.textContent = "Pista: una fecha importante ♡";
+      if (pin.length === PIN_CORRECTO.length) comprobar();
+    }
+    document.querySelectorAll("[data-digit]").forEach(b => b.addEventListener("click", () => añadir(b.dataset.digit)));
+    document.getElementById("clear").addEventListener("click", () => { pin = ""; dibujar(); message.textContent = "Código borrado."; });
+    document.getElementById("backspace").addEventListener("click", () => { pin = pin.slice(0,-1); dibujar(); });
+    document.addEventListener("keydown", e => {
+      if (/^[0-9]$/.test(e.key)) añadir(e.key);
+      else if (e.key === "Backspace") { pin = pin.slice(0,-1); dibujar(); }
+      else if (e.key === "Escape") { pin = ""; dibujar(); }
+    });
+  </script>
+</body>
+</html>
